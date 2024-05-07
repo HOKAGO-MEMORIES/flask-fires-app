@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'yhkim'
 
 from flask_bootstrap import Bootstrap5
-from flask_wtf import FlaskForm
+bootstrap5 = Bootstrap5(app)
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
@@ -49,7 +49,7 @@ def lab():
                            float(form.max_wind_speed.data),
                            float(form.avg_wind.data)])
 
-        X_test = pd.DataFrame(X_test, columns=['longitude', 'latitude', 'month', 'day',
+        X_test = pd.DataFrame(X_test.reshape(1, -1), columns=['longitude', 'latitude', 'month', 'day',
                                                'avg_temp', 'max_temp', 'max_wind_speed', 'avg_wind'])
 
         data = pd.read_csv('./sanbul2district-divby100.csv', sep=',')
@@ -90,12 +90,13 @@ def lab():
         if "error" in response:
             raise RuntimeError(response["error"])
         
-        predD = np.array([pred['dense_3'] for pred in response["predictions"]]) 
+        predD = np.array([pred['dense_7'][0] for pred in response["predictions"]]) 
 
-        print(predD[0][0])
-        res = predD[0][0]
+        print(predD[0])
+        res = predD[0]
         res = np.round(res, 2)
-        res = (float)(np.round(res * 100))
+        res = float(np.round(abs(res) * 100))
+
 
         return render_template('result.html', res=res)
     return render_template('prediction.html', form=form)
